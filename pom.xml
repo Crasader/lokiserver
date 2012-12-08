@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.fenrissoftwerks</groupId>
-  <artifactId>Loki</artifactId>
+  <artifactId>lokiserver</artifactId>
   <version>1.0-SNAPSHOT</version>
     <build>
         <plugins>
@@ -32,8 +32,8 @@
     </repositories>
     <packaging>jar</packaging>
 
-  <name>Loki</name>
-  <url>http://maven.apache.org</url>
+  <name>lokiserver</name>
+  <url>https://github.com/jlmichael/lokiserver</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -116,7 +116,6 @@
           <artifactId>commons-io</artifactId>
           <version>1.4</version>
       </dependency>
-
       <dependency>
           <groupId>junit</groupId>
           <artifactId>junit</artifactId>
