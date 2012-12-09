@@ -2,6 +2,7 @@ package com.fenrissoftwerks.loki.gameserver;
 
 import com.fenrissoftwerks.loki.Command;
 import com.fenrissoftwerks.loki.GameEngine;
+import com.fenrissoftwerks.loki.gameserver.channelhandler.GameServerHandler;
 import com.fenrissoftwerks.loki.util.LokiExclusionStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,13 +15,17 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.Delimiters;
-import org.jboss.netty.handler.codec.serialization.ObjectDecoder;
-import org.jboss.netty.handler.codec.serialization.ObjectEncoder;
+import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
+import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
+import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import org.jboss.netty.handler.codec.string.StringDecoder;
 import org.jboss.netty.handler.codec.string.StringEncoder;
 
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +49,10 @@ import java.util.concurrent.Executors;
  * The GameServer stores a mapping of game objects to lists of clients watching them in a local hash.  This
  * facilitates multicasting of Commands.  It also stores the converse map - client to list of game object they
  * are watching.  This lets us quickly clean up when a client disconnects.
+ *
+ * The GameServer can accept both raw messages and WebSocket frames.  To listen for raw messages on a port, use the
+ * startServer(port) method.  Use startWebSocketServer(port) to listen for WebSocket frames on the port.  One or more
+ * of each can be active simultaneously, as well.
  */
 public class GameServer {
 
@@ -55,6 +64,9 @@ public class GameServer {
     public static final String KEY_GAME_ENGINE_CLASS = "game.engine.class";
     private static final Character COMMAND_DELIMITER = 0x01;
     private static Gson gson = new GsonBuilder().setExclusionStrategies(new LokiExclusionStrategy()).create();
+
+    private int runningOnPort = 0;
+    private int wsRunningOnPort = 0;
 
     private GameServer() {}
 
@@ -140,7 +152,14 @@ public class GameServer {
     public void sendCommandToClient(Command command, Channel clientChannel) {
         String commandAsJSON = gson.toJson(command) + COMMAND_DELIMITER;
         logger.debug("Outbound command looks like: " + commandAsJSON);
-        clientChannel.write(commandAsJSON);
+
+        // Check the port the client connected to.  If it is the WebSocket port, send a TextWebSocketFrame.
+        // Otherwise send the raw message.
+        if(((InetSocketAddress)clientChannel.getLocalAddress()).getPort() == wsRunningOnPort) {
+            clientChannel.write(new TextWebSocketFrame(commandAsJSON));
+        } else {
+            clientChannel.write(commandAsJSON);
+        }
     }
 
     public void startServer() throws Exception {
@@ -169,6 +188,35 @@ public class GameServer {
 
         // Bind and start to accept incoming connections.
         bootstrap.bind(new InetSocketAddress(port));
+        runningOnPort = port;
+    }
+
+    public void startWebSocketServer() throws Exception {
+        startWebSocketServer(5001);
+    }
+
+    // Function for starting up a server on a specific port
+    public void startWebSocketServer(int port) throws Exception {
+        // Configure the server.
+        final GameServer server = this;
+        ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
+                Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
+
+        // Set up the pipeline factory.
+        bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
+            public ChannelPipeline getPipeline() throws Exception {
+                return Channels.pipeline(
+                        new HttpRequestDecoder(),
+                        new HttpChunkAggregator(65536),
+                        new HttpResponseEncoder(),
+                        new WebSocketServerProtocolHandler("/websocket"),
+                        new GameServerHandler(server, engine, gson));
+            }
+        });
+
+        // Bind and start to accept incoming connections.
+        bootstrap.bind(new InetSocketAddress(port));
+        wsRunningOnPort = port;
     }
 
 }

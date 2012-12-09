@@ -2,10 +2,10 @@ package com.fenrissoftwerks.loki.gameserver;
 
 import com.fenrissoftwerks.loki.Command;
 import com.fenrissoftwerks.loki.GameEngine;
+import com.fenrissoftwerks.loki.gameserver.channelhandler.GameServerHandler;
 import com.google.gson.Gson;
 import junit.framework.TestCase;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.UpstreamMessageEvent;
 import org.junit.Test;
 import static org.easymock.classextension.EasyMock.*;

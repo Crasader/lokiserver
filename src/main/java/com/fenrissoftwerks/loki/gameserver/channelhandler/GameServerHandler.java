@@ -1,12 +1,14 @@
-package com.fenrissoftwerks.loki.gameserver;
+package com.fenrissoftwerks.loki.gameserver.channelhandler;
 
 import com.fenrissoftwerks.loki.Command;
 import com.fenrissoftwerks.loki.GameEngine;
+import com.fenrissoftwerks.loki.gameserver.GameServer;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.jboss.netty.channel.*;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +37,7 @@ public class GameServerHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void handleUpstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
         if (e instanceof ChannelStateEvent &&((ChannelStateEvent) e).getState() != ChannelState.INTEREST_OPS) {
-            logger.info(e.toString());
+            logger.info("Event: " + e.toString());
         }
         super.handleUpstream(ctx, e);
     }
@@ -53,9 +55,19 @@ public class GameServerHandler extends SimpleChannelUpstreamHandler {
         logger.debug(e.getMessage().toString());
         // Try to deserialize the incoming message as a Command object
         try {
-            Command command = gson.fromJson((String)e.getMessage(), Command.class);
+            String message;
+            if(e.getMessage() instanceof TextWebSocketFrame) {
+                logger.debug("It's a TextWebSocketFrame");
+                message = ((TextWebSocketFrame)e.getMessage()).getText();
+            } else {
+                logger.debug("It's a raw message");
+                message = (String)e.getMessage();
+            }
+            logger.info("Command as text is: " + message);
+            Command command = gson.fromJson(message, Command.class);
+            logger.info("Got a command, name is: " + command.getCommandName());
             engine.processCommand(command, ctx);
-        } catch (JsonParseException e1) {
+        } catch (Exception e1) {
             // Are they looking for the policy file?
             if(e.getMessage().toString().startsWith("<policy-file-request/>")) {
                 logger.debug("Detected policy file request");
@@ -73,7 +85,8 @@ public class GameServerHandler extends SimpleChannelUpstreamHandler {
                 logger.debug("Policy string is: " + policy);
                 ctx.getChannel().write(policy);
             } else {
-                throw e1;
+                logger.info("Could not deserialize JSON Command: " + e1);
+//                throw e1;
             }
         }
     }
