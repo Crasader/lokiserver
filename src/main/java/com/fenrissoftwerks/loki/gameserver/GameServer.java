@@ -12,6 +12,9 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.ChannelGroupFuture;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.Delimiters;
@@ -58,6 +61,7 @@ public class GameServer {
 
     private HashMap<Object, List<Channel>> objectWatchers = new HashMap<Object, List<Channel>>();
     private HashMap<Channel, List<Object>> clientsWatchingObjects = new HashMap<Channel, List<Object>>();
+    private List<ServerBootstrap> activeServerBootstraps = new ArrayList<ServerBootstrap>();
     private GameEngine engine;
     private static Logger logger = Logger.getLogger(GameServer.class);
     public static final String GAME_PROPERTIES_FILENAME = "game.properties";
@@ -67,6 +71,8 @@ public class GameServer {
 
     private int runningOnPort = 0;
     private int wsRunningOnPort = 0;
+
+    static final ChannelGroup allChannels = new DefaultChannelGroup("lokiserver");
 
     private GameServer() {}
 
@@ -93,6 +99,10 @@ public class GameServer {
             }
         }
         return SingletonHolder.INSTANCE;
+    }
+
+    public static void addChannelToServerChannelGroup(Channel channel) {
+        allChannels.add(channel);
     }
 
     // Set up a client as a watcher of a game object
@@ -137,7 +147,13 @@ public class GameServer {
     // Send a Command (e.g. UpdateBoard or something) to all watchers of an object
     public void sendCommandToWatchers(Command command, Object gameObject) {
         // Serialize the Command for writing to the wire
-        String commandAsJSON = gson.toJson(command);
+        String commandAsJSON = null;
+        try {
+            commandAsJSON = gson.toJson(command);
+        } catch (Exception e) {
+            logger.error("Caught an exception while trying to serialize command: " + command.getCommandName(), e);
+            return;
+        }
         logger.debug("Outbound command looks like: " + commandAsJSON);
         // Get list of clients to send to
         List<Channel> watchers = objectWatchers.get(gameObject);
@@ -185,6 +201,7 @@ public class GameServer {
                         new GameServerHandler(server, engine, gson));
             }
         });
+        activeServerBootstraps.add(bootstrap);
 
         // Bind and start to accept incoming connections.
         bootstrap.bind(new InetSocketAddress(port));
@@ -213,10 +230,23 @@ public class GameServer {
                         new GameServerHandler(server, engine, gson));
             }
         });
+        activeServerBootstraps.add(bootstrap);
 
         // Bind and start to accept incoming connections.
         bootstrap.bind(new InetSocketAddress(port));
         wsRunningOnPort = port;
+    }
+
+    public void addCommandHandlerForCommandName(String commandName, String commandHandlerClassName) {
+        engine.addCommandHandlerToCommandMap(commandName, commandHandlerClassName);
+    }
+
+    public void stopServer() {
+        ChannelGroupFuture future = allChannels.close();
+        future.awaitUninterruptibly();
+        for(ServerBootstrap bs : activeServerBootstraps) {
+            bs.releaseExternalResources();
+        }
     }
 
 }

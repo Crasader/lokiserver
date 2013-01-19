@@ -20,10 +20,10 @@ import java.util.regex.Pattern;
  * specific logic/mechanics for a game.  At class instatiation, this class fetches the game.properties config file
  * and uses it to set up a hash of Command names to their associated AbstractCommandHandler implementations.  This is
  * used by the default processCommand method to instantiate the correct Handler (via reflection) and call its
- * executeCommand method.  If reflection is deemed to slow for a given game, the processCommand method can of course
+ * executeCommand method.  If reflection is deemed too slow for a given game, the processCommand method can of course
  * be overridden to provide a faster implementation.
  */
-public class GameEngine {
+public abstract class GameEngine {
 
     protected static Map<String, String> commandMap = new HashMap<String, String>();
     protected GameServer server;
@@ -108,5 +108,10 @@ public class GameEngine {
      * @param ctx
      */
     public void handleClientDisconnect(ChannelHandlerContext ctx) {
+        logger.info("Handling clientDisconnect in abstract GameEngine class");
+    }
+
+    public void addCommandHandlerToCommandMap(String commandName, String commandHandlerClassName) {
+        commandMap.put(commandName, commandHandlerClassName);
     }
 }

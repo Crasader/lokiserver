@@ -13,6 +13,7 @@ import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,7 +21,7 @@ import java.util.List;
  * This class implements the SimpleChannelUpstreamHandler class in netty.  See that class in the netty docs
  * for more information.
  */
-public class GameServerHandler extends SimpleChannelUpstreamHandler {
+public class GameServerHandler extends SimpleChannelHandler {
 
     private static final Logger logger = Logger.getLogger(GameServerHandler.class);
 
@@ -40,6 +41,11 @@ public class GameServerHandler extends SimpleChannelUpstreamHandler {
             logger.info("Event: " + e.toString());
         }
         super.handleUpstream(ctx, e);
+    }
+
+    @Override
+    public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+        GameServer.addChannelToServerChannelGroup(e.getChannel());
     }
 
     /**
@@ -85,7 +91,7 @@ public class GameServerHandler extends SimpleChannelUpstreamHandler {
                 logger.debug("Policy string is: " + policy);
                 ctx.getChannel().write(policy);
             } else {
-                logger.info("Could not deserialize JSON Command: " + e1);
+                logger.info("Could not deserialize JSON Command: ", e1);
 //                throw e1;
             }
         }
@@ -114,10 +120,22 @@ public class GameServerHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
         // Get the list of objects being watched by the disconnected client
+        logger.debug("Getting channel for client");
         Channel clientChannel = ctx.getChannel();
+        logger.debug("Getting watched objects for this client from the GameServer");
         List<Object> watchedObjects = server.getObjectsWatchedBy(clientChannel);
-        for(Object watchedObject : watchedObjects) {
-            server.removeWatcherForObject(watchedObject, clientChannel);
+        List<Object> toRemove = new ArrayList<Object>();
+        if(watchedObjects != null && watchedObjects.size() > 0) {
+            logger.debug("Walking list of watched objects, size is: " + watchedObjects.size());
+            for(Object watchedObject : watchedObjects) {
+                toRemove.add(watchedObject);
+            }
+            for(Object watchedObject : toRemove) {
+                logger.debug("Removing Object: " + watchedObject);
+                server.removeWatcherForObject(watchedObject, clientChannel);
+                logger.debug("Removed!");
+            }
+            logger.debug("Done removing watched objects");
         }
 
         // Notify the game engine
