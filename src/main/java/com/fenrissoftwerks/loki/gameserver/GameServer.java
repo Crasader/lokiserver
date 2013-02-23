@@ -6,6 +6,7 @@ import com.fenrissoftwerks.loki.gameserver.channelhandler.GameServerHandler;
 import com.fenrissoftwerks.loki.util.LokiExclusionStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSerializer;
 import org.apache.log4j.Logger;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -249,4 +250,12 @@ public class GameServer {
         }
     }
 
+    // Implementations can set their own custom Gson objects to handle custom serializations
+    public static Gson getGson() {
+        return gson;
+    }
+
+    public static void setGson(Gson gson) {
+        GameServer.gson = gson;
+    }
 }
