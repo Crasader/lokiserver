@@ -70,7 +70,6 @@ public class GameServer {
     private static final Character COMMAND_DELIMITER = 0x01;
     private static Gson gson = new GsonBuilder().setExclusionStrategies(new LokiExclusionStrategy()).create();
 
-    private int runningOnPort = 0;
     private int wsRunningOnPort = 0;
 
     static final ChannelGroup allChannels = new DefaultChannelGroup("lokiserver");
@@ -206,7 +205,6 @@ public class GameServer {
 
         // Bind and start to accept incoming connections.
         bootstrap.bind(new InetSocketAddress(port));
-        runningOnPort = port;
     }
 
     public void startWebSocketServer() throws Exception {
