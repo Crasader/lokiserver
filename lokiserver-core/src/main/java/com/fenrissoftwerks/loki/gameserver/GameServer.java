@@ -28,6 +28,7 @@ import org.jboss.netty.handler.codec.string.StringDecoder;
 import org.jboss.netty.handler.codec.string.StringEncoder;
 
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -71,6 +72,7 @@ public class GameServer {
     private static Gson gson = new GsonBuilder().setExclusionStrategies(new LokiExclusionStrategy()).create();
 
     private int wsRunningOnPort = 0;
+    private String gameEngineClassName = null;
 
     static final ChannelGroup allChannels = new DefaultChannelGroup("lokiserver");
 
@@ -80,22 +82,38 @@ public class GameServer {
         private static final GameServer INSTANCE = new GameServer();
     }
 
-    public static GameServer getInstance() {
+    public static void setGameEngineClassName(String gameEngineClassName) {
+        SingletonHolder.INSTANCE.gameEngineClassName = gameEngineClassName;
+    }
 
+    public static GameServer getInstance() {
         GameServer instance = SingletonHolder.INSTANCE;
         if(instance.engine == null) {
-            // Initialize the game engine
-            ClassLoader cl = GameServer.class.getClassLoader();
-            InputStream propertiesStream = cl.getResourceAsStream(GAME_PROPERTIES_FILENAME);
-            try {
-                Properties props = new Properties();
-                props.load(propertiesStream);
-                String gameEngineClassString = props.getProperty(KEY_GAME_ENGINE_CLASS);
-                logger.info("Creating instance of gameEngineClass: " + gameEngineClassString);
-                Class gameEngineClass = Class.forName(gameEngineClassString);
-                instance.engine = (GameEngine)gameEngineClass.newInstance();
-            } catch (Exception e) {
-                logger.fatal("Could not instantiate a GameEngine instance", e);
+            // Initialize the game engine.  If the static gameEngineClassName has been set, just use that.
+            if(instance.gameEngineClassName != null) {
+                try {
+                    Class gameEngineClass = Class.forName(instance.gameEngineClassName);
+                    instance.engine = (GameEngine)gameEngineClass.newInstance();
+                } catch (ClassNotFoundException e) {
+                    logger.fatal("Class not found for programatically configured GameEngine instance: ", e);
+                } catch (InstantiationException e) {
+                    logger.fatal("InstantiationException for programatically configured GameEngine instance: ", e);
+                } catch (IllegalAccessException e) {
+                    logger.fatal("IllegalAccessException for programatically configured GameEngine instance: ", e);
+                }
+            } else {
+                ClassLoader cl = GameServer.class.getClassLoader();
+                InputStream propertiesStream = cl.getResourceAsStream(GAME_PROPERTIES_FILENAME);
+                try {
+                    Properties props = new Properties();
+                    props.load(propertiesStream);
+                    String gameEngineClassString = props.getProperty(KEY_GAME_ENGINE_CLASS);
+                    logger.info("Creating instance of gameEngineClass: " + gameEngineClassString);
+                    Class gameEngineClass = Class.forName(gameEngineClassString);
+                    instance.engine = (GameEngine)gameEngineClass.newInstance();
+                } catch (Exception e) {
+                    logger.fatal("Could not instantiate a GameEngine instance", e);
+                }
             }
         }
         return SingletonHolder.INSTANCE;
