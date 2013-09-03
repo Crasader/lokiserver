@@ -13,18 +13,6 @@
     <module>lokiserver-core</module>
     <module>lokiserver-integtest</module>
   </modules>
-  <repositories>
-    <repository>
-      <id>central</id>
-      <name>Maven Central</name>
-      <url>http://repo2.maven.org/maven2/</url>
-    </repository>
-    <repository>
-      <id>jboss-maven2-release-repository</id>
-      <name>JBoss</name>
-      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
-    </repository>
-  </repositories>
 
   <build>
 	<plugins>
