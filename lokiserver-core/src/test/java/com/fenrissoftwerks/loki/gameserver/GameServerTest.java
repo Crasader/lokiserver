@@ -1,6 +1,7 @@
 package com.fenrissoftwerks.loki.gameserver;
 
 import com.fenrissoftwerks.loki.Command;
+import com.fenrissoftwerks.loki.GameEngine;
 import com.google.gson.Gson;
 import junit.framework.TestCase;
 import org.jboss.netty.channel.Channel;
@@ -15,9 +16,13 @@ import static org.easymock.EasyMock.*;
 
 public class GameServerTest extends TestCase {
 
+    public static class MockEngine extends GameEngine {
+    }
+
     @Test
     public void testWatchObject() throws Exception {
         Channel channel = createNiceMock(Channel.class);
+        GameServer.setGameEngineClassName("com.fenrissoftwerks.loki.gameserver.GameServerTest$MockEngine");
         GameServer gs = GameServer.getInstance();
         Object indexObj = new Object();
         gs.addWatcherForObject(indexObj, channel);
@@ -32,6 +37,7 @@ public class GameServerTest extends TestCase {
         Channel channel = createNiceMock(Channel.class);
         InetSocketAddress addr = InetSocketAddress.createUnresolved("foo", 5001);
 
+        GameServer.setGameEngineClassName("com.fenrissoftwerks.loki.gameserver.GameServerTest$MockEngine");
         GameServer gs = GameServer.getInstance();
         Object indexObj = new Object();
         gs.addWatcherForObject(indexObj, channel);
