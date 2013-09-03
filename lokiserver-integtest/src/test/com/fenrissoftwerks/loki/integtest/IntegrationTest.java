@@ -18,7 +18,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.Executors;
 
-
 public class IntegrationTest extends TestCase {
 
     private static String INTEG_TEST_ENVIRONMENT_HOSTNAME = "localhost";
