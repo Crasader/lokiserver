@@ -82,6 +82,10 @@ public class GameServer {
         private static final GameServer INSTANCE = new GameServer();
     }
 
+    /**
+     * Set the GameEngine class name to use when initializing the GameServer
+     * @param gameEngineClassName The fully qualified class name of the GameEngine subclass to use
+     */
     public static void setGameEngineClassName(String gameEngineClassName) {
         SingletonHolder.INSTANCE.gameEngineClassName = gameEngineClassName;
     }
