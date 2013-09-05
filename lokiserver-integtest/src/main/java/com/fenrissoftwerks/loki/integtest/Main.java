@@ -53,8 +53,12 @@ public class Main {
         GameServer server = GameServer.getInstance();
 
         server.addCommandHandlerForCommandName("echo", "com.fenrissoftwerks.loki.integtest.Main$EchoCommandHandler");
-        server.addCommandHandlerForCommandName("watchSomething", "com.fenrissoftwerks.loki.integtest.Main$EchoCommandHandler");
-        server.addCommandHandlerForCommandName("pingSomething", "com.fenrissoftwerks.loki.integtest.Main$EchoCommandHandler");
+        server.addCommandHandlerForCommandName(
+                "watchSomething",
+                "com.fenrissoftwerks.loki.integtest.Main$EchoCommandHandler");
+        server.addCommandHandlerForCommandName(
+                "pingSomething",
+                "com.fenrissoftwerks.loki.integtest.Main$EchoCommandHandler");
 
         if(args.length >= 1) {
             try {
