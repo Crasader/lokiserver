@@ -111,6 +111,11 @@ public abstract class GameEngine {
         logger.info("Handling clientDisconnect in abstract GameEngine class");
     }
 
+    /**
+     * Add a CommandHandler for the given command name to our command map
+     * @param commandName The name of the command
+     * @param commandHandlerClassName The fully qualified class name of the CommandHandler
+     */
     public void addCommandHandlerToCommandMap(String commandName, String commandHandlerClassName) {
         commandMap.put(commandName, commandHandlerClassName);
     }
