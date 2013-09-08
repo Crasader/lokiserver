@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE cross-domain-policy SYSTEM "/xml/dtds/cross-domain-policy.dtd">
 
-<!-- Policy file for xmlsocket://socks.example.com -->
 <cross-domain-policy>
 
    <!-- This is a master socket policy file -->
