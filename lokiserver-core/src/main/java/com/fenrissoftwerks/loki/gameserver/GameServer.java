@@ -90,6 +90,10 @@ public class GameServer {
         SingletonHolder.INSTANCE.gameEngineClassName = gameEngineClassName;
     }
 
+    /**
+     * Get the GameServer singleton instance.  If the instance has not been created yet, this will build it.
+     * @return The GameServer singleton instance
+     */
     public static GameServer getInstance() {
         GameServer instance = SingletonHolder.INSTANCE;
         if(instance.engine == null) {
@@ -123,6 +127,10 @@ public class GameServer {
         return SingletonHolder.INSTANCE;
     }
 
+    /**
+     * Add the given Channel to the GameServer's ChannelGroup.
+     * @param channel The Channel to add to the ChannelGroup
+     */
     public static void addChannelToServerChannelGroup(Channel channel) {
         allChannels.add(channel);
     }
