@@ -4,7 +4,6 @@ import com.fenrissoftwerks.loki.Command;
 import com.fenrissoftwerks.loki.GameEngine;
 import com.fenrissoftwerks.loki.gameserver.GameServer;
 import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.jboss.netty.channel.*;

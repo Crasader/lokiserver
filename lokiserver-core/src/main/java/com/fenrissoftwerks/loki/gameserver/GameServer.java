@@ -6,7 +6,6 @@ import com.fenrissoftwerks.loki.gameserver.channelhandler.GameServerHandler;
 import com.fenrissoftwerks.loki.util.LokiExclusionStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSerializer;
 import org.apache.log4j.Logger;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -27,14 +26,10 @@ import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerProtocolHand
 import org.jboss.netty.handler.codec.string.StringDecoder;
 import org.jboss.netty.handler.codec.string.StringEncoder;
 
-import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.Executors;
 
 /**
@@ -42,9 +37,9 @@ import java.util.concurrent.Executors;
  * communications with clients, as well as all the game mechanics, scoring, etc.  Game servers should subclass
  * this class to implement specific game functionality.
  *
- * GameServer is a Singleton.  The first time the instance is requested, it will look for its game.properties
- * configuration file in the classpath.  Using the configuration file, it will create an instance of the game's
- * GameEngine subclass for handling all the game logic.
+ * GameServer is a Singleton.  The first time the instance is requested, it will get its environment variables and
+ * inspect them to get the FQDN of the GameEngine subclass to use.  It will then create an instance of this subclass and
+ * hand it out to requesting code.
  *
  * Messages get passed in and out of the GameServer as JSON-serialized Command objects.  See Command for details.
  * When the GameServer receives a Command, it deserializes it and passes it in to the GameEngine via the
@@ -61,13 +56,12 @@ import java.util.concurrent.Executors;
  */
 public class GameServer {
 
+    private static final String LOKISERVER_GAME_ENGINE_CLASS_KEY = "LOKISERVER_GAME_ENGINE_CLASS";
     private HashMap<Object, List<Channel>> objectWatchers = new HashMap<Object, List<Channel>>();
     private HashMap<Channel, List<Object>> clientsWatchingObjects = new HashMap<Channel, List<Object>>();
     private List<ServerBootstrap> activeServerBootstraps = new ArrayList<ServerBootstrap>();
     private GameEngine engine;
     private static Logger logger = Logger.getLogger(GameServer.class);
-    public static final String GAME_PROPERTIES_FILENAME = "game.properties";
-    public static final String KEY_GAME_ENGINE_CLASS = "game.engine.class";
     private static final Character COMMAND_DELIMITER = 0x01;
     private static Gson gson = new GsonBuilder().setExclusionStrategies(new LokiExclusionStrategy()).create();
 
@@ -110,12 +104,8 @@ public class GameServer {
                     logger.fatal("IllegalAccessException for programatically configured GameEngine instance: ", e);
                 }
             } else {
-                ClassLoader cl = GameServer.class.getClassLoader();
-                InputStream propertiesStream = cl.getResourceAsStream(GAME_PROPERTIES_FILENAME);
                 try {
-                    Properties props = new Properties();
-                    props.load(propertiesStream);
-                    String gameEngineClassString = props.getProperty(KEY_GAME_ENGINE_CLASS);
+                    String gameEngineClassString = System.getenv(LOKISERVER_GAME_ENGINE_CLASS_KEY);
                     logger.info("Creating instance of gameEngineClass: " + gameEngineClassString);
                     Class gameEngineClass = Class.forName(gameEngineClassString);
                     instance.engine = (GameEngine)gameEngineClass.newInstance();

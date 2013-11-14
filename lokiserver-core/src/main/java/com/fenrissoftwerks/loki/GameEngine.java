@@ -17,41 +17,29 @@ import java.util.regex.Pattern;
 
 /**
  * GameEngine - GameEngine is a basic Command processing engine, subclasses of which implement all of the game
- * specific logic/mechanics for a game.  At class instatiation, this class fetches the game.properties config file
- * and uses it to set up a hash of Command names to their associated AbstractCommandHandler implementations.  This is
+ * specific logic/mechanics for a game.  At classload time, this class fetches the environment variables
+ * and uses them to set up a hash of Command names to their associated AbstractCommandHandler implementations.  This is
  * used by the default processCommand method to instantiate the correct Handler (via reflection) and call its
  * executeCommand method.  If reflection is deemed too slow for a given game, the processCommand method can of course
  * be overridden to provide a faster implementation.
  */
 public abstract class GameEngine {
 
-    protected static Map<String, String> commandMap = new HashMap<String, String>();
     protected GameServer server;
 
+    protected static Map<String, String> commandMap = new HashMap<String, String>();
     private static Logger logger = Logger.getLogger(GameEngine.class);
+    private static final String LS_COMMAND_IMPLEMENTOR_PREFIX_KEY = "LOKISERVER.COMMAND.IMPLEMENTOR.";
 
     static {
-        ClassLoader cl = GameEngine.class.getClassLoader();
-        InputStream propertiesStream = cl.getResourceAsStream(GameServer.GAME_PROPERTIES_FILENAME);
-        try {
-            Properties props = new Properties();
-            if(propertiesStream != null) {
-                props.load(propertiesStream);
-                // For each property, check the key to see if it is an implementor
-                Set<String> propertyNames = props.stringPropertyNames();
-                for(String propertyName : propertyNames) {
-                    logger.info("Inspecting " + propertyName);
-                    if(propertyName.startsWith("command.implementor.")) {
-                        String key = propertyName.substring(20);
-                        logger.info("Adding " + key + ":" + props.getProperty(propertyName));
-                        commandMap.put(key, props.getProperty(propertyName));
-                    }
-                }
-            } else {
-                logger.error("Could not find game.properties file at initialization time");
+        Map<String, String> envvars = System.getenv();
+        for(String key : envvars.keySet()) {
+            logger.info("Inspecting " + key);
+            if(key.startsWith(LS_COMMAND_IMPLEMENTOR_PREFIX_KEY)) {
+                String commandName = key.substring(LS_COMMAND_IMPLEMENTOR_PREFIX_KEY.length() + 1);
+                logger.info("Adding " + commandName + ":" + envvars.get(key));
+                commandMap.put(key, envvars.get(key));
             }
-        } catch (IOException e) {
-            logger.error("Error while initializing the command map");
         }
     }
 
