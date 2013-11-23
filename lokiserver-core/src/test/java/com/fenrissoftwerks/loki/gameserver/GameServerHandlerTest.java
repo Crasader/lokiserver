@@ -30,7 +30,6 @@ public class GameServerHandlerTest extends TestCase {
     public void testMessageReceived() throws Exception {
         MockGameEngine engine = new MockGameEngine();
         Gson gson = new Gson();
-        GameServer.setGameEngineClassName("com.fenrissoftwerks.loki.gameserver.GameServerHandlerTest$MockGameEngine");
         GameServerHandler gsh = new GameServerHandler(GameServer.getInstance(), engine, gson);
         ChannelHandlerContext ctx = createNiceMock(ChannelHandlerContext.class);
         UpstreamMessageEvent e = createNiceMock(UpstreamMessageEvent.class);

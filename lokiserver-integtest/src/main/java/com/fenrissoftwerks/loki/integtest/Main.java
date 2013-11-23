@@ -49,8 +49,8 @@ public class Main {
     public static void main(String[] args) {
         Integer port;
         Integer wsPort;
-        GameServer.setGameEngineClassName("com.fenrissoftwerks.loki.integtest.Main$IntegTestEngine");
         GameServer server = GameServer.getInstance();
+        server.setEngine(new IntegTestEngine());
 
         server.addCommandHandlerForCommandName("echo", "com.fenrissoftwerks.loki.integtest.Main$EchoCommandHandler");
         server.addCommandHandlerForCommandName(

@@ -56,7 +56,6 @@ import java.util.concurrent.Executors;
  */
 public class GameServer {
 
-    private static final String LOKISERVER_GAME_ENGINE_CLASS_KEY = "LOKISERVER_GAME_ENGINE_CLASS";
     private HashMap<Object, List<Channel>> objectWatchers = new HashMap<Object, List<Channel>>();
     private HashMap<Channel, List<Object>> clientsWatchingObjects = new HashMap<Channel, List<Object>>();
     private List<ServerBootstrap> activeServerBootstraps = new ArrayList<ServerBootstrap>();
@@ -77,44 +76,19 @@ public class GameServer {
     }
 
     /**
-     * Set the GameEngine class name to use when initializing the GameServer
-     * @param gameEngineClassName The fully qualified class name of the GameEngine subclass to use
-     */
-    public static void setGameEngineClassName(String gameEngineClassName) {
-        SingletonHolder.INSTANCE.gameEngineClassName = gameEngineClassName;
-    }
-
-    /**
-     * Get the GameServer singleton instance.  If the instance has not been created yet, this will build it.
+     * Get the GameServer singleton instance.
      * @return The GameServer singleton instance
      */
     public static GameServer getInstance() {
-        GameServer instance = SingletonHolder.INSTANCE;
-        if(instance.engine == null) {
-            // Initialize the game engine.  If the static gameEngineClassName has been set, just use that.
-            if(instance.gameEngineClassName != null) {
-                try {
-                    Class gameEngineClass = Class.forName(instance.gameEngineClassName);
-                    instance.engine = (GameEngine)gameEngineClass.newInstance();
-                } catch (ClassNotFoundException e) {
-                    logger.fatal("Class not found for programatically configured GameEngine instance: ", e);
-                } catch (InstantiationException e) {
-                    logger.fatal("InstantiationException for programatically configured GameEngine instance: ", e);
-                } catch (IllegalAccessException e) {
-                    logger.fatal("IllegalAccessException for programatically configured GameEngine instance: ", e);
-                }
-            } else {
-                try {
-                    String gameEngineClassString = System.getenv(LOKISERVER_GAME_ENGINE_CLASS_KEY);
-                    logger.info("Creating instance of gameEngineClass: " + gameEngineClassString);
-                    Class gameEngineClass = Class.forName(gameEngineClassString);
-                    instance.engine = (GameEngine)gameEngineClass.newInstance();
-                } catch (Exception e) {
-                    logger.fatal("Could not instantiate a GameEngine instance", e);
-                }
-            }
-        }
         return SingletonHolder.INSTANCE;
+    }
+
+    public GameEngine getEngine() {
+        return engine;
+    }
+
+    public void setEngine(GameEngine engine) {
+        this.engine = engine;
     }
 
     /**

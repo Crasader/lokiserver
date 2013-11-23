@@ -22,8 +22,8 @@ public class GameServerTest extends TestCase {
     @Test
     public void testWatchObject() throws Exception {
         Channel channel = createNiceMock(Channel.class);
-        GameServer.setGameEngineClassName("com.fenrissoftwerks.loki.gameserver.GameServerTest$MockEngine");
         GameServer gs = GameServer.getInstance();
+        gs.setEngine(new MockEngine());
         Object indexObj = new Object();
         gs.addWatcherForObject(indexObj, channel);
         List<Channel> fetchChannels = gs.getWatchersForObject(indexObj);
@@ -37,8 +37,8 @@ public class GameServerTest extends TestCase {
         Channel channel = createNiceMock(Channel.class);
         InetSocketAddress addr = InetSocketAddress.createUnresolved("foo", 5001);
 
-        GameServer.setGameEngineClassName("com.fenrissoftwerks.loki.gameserver.GameServerTest$MockEngine");
         GameServer gs = GameServer.getInstance();
+        gs.setEngine(new MockEngine());
         Object indexObj = new Object();
         gs.addWatcherForObject(indexObj, channel);
         List<Object> list = new ArrayList<Object>();
