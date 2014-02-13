@@ -3,7 +3,7 @@
 
   <groupId>com.fenrissoftwerks</groupId>
   <artifactId>lokiserver</artifactId>
-  <version>1.0.53</version>
+  <version>1.0.54</version>
   <packaging>pom</packaging>
 
   <name>lokiserver</name>
