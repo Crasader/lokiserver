@@ -201,7 +201,7 @@ public class IntegrationTest extends TestCase {
         messageStr = "{\"commandName\":\"pingSomething\",\"commandArgs\":[\"sup\"]}\0";
         channel.write(ChannelBuffers.wrappedBuffer(messageStr.getBytes("UTF-8")));
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
 
         // Validate that both clients received the ping on the watched object
         assertEquals("{\"commandName\":\"pingResponse\",\"commandArgs\":[\"Hey we got a ping on: sup\"]}\1",
