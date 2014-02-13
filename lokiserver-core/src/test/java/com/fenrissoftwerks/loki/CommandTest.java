@@ -1,6 +1,5 @@
 package com.fenrissoftwerks.loki;
 
-import com.google.gson.Gson;
 import junit.framework.TestCase;
 
 public class CommandTest extends TestCase {
