@@ -21,13 +21,4 @@ public class CommandTest extends TestCase {
         assertEquals("foo", outArgs[0]);
         assertEquals(1, outArgs[1]);
     }
-
-    public void testGson() throws Exception {
-        Command command = new Command();
-        command.setCommandName("createPlayer");
-        command.setCommandArgs(new Object[]{"jason","foobar"});
-        Gson gson = new Gson();
-        String commandAsJSON = gson.toJson(command);
-
-    }
 }
