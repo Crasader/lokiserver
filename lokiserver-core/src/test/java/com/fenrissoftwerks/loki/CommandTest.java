@@ -25,7 +25,7 @@ public class CommandTest extends TestCase {
     public void testGson() throws Exception {
         Command command = new Command();
         command.setCommandName("createPlayer");
-        command.setCommandArgs(new Object[]{"jason","foobar"});
+        command.setCommandArgs(new Object[]{"jasonj","foobar"});
         Gson gson = new Gson();
         String commandAsJSON = gson.toJson(command);
 
